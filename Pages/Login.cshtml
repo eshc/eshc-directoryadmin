@@ -1,0 +1,21 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<form method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <table>
+        <tbody>
+            <tr>
+            <td>Username or E-mail address: </td><td><input asp-for="loginData.Username" value="username" /></td>
+            </tr>
+            <tr><td>Password: </td><td><input asp-for="loginData.Password" value="password" /></td></tr>
+            <tr><td>Remember me: </td><td><input asp-for="loginData.RememberMe" type="checkbox" /></td></tr>
+            <tr><td></td><td><input type="submit" value="Login" /></td></tr>
+        </tbody>
+    </table>
+    @Html.AntiForgeryToken()
+</form>

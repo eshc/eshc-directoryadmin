@@ -1,0 +1,9 @@
+@page
+@using Microsoft.AspNetCore.Authentication
+@{
+    await HttpContext.SignOutAsync();
+    ViewData["Title"] = "Logout";
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+You are now logged out!
