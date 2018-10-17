@@ -15,6 +15,8 @@ namespace eshc_diradmin
 {
     public class Startup
     {
+        public LDAPUtils.Parameters ldapParams;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -25,6 +27,10 @@ namespace eshc_diradmin
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            ldapParams = Configuration.GetSection("LDAP").Get<LDAPUtils.Parameters>();
+
+            LDAPUtils.ValidateParameters(ldapParams);
+
             /*services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
