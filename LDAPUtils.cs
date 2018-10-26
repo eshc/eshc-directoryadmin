@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text.RegularExpressions;
 using System.Net;
 using Novell.Directory.Ldap;
@@ -14,8 +16,8 @@ namespace eshc_diradmin
     public class LDAPUtils
     {
         private readonly ILogger logger;
-        Parameters Params;
-        LdapConnection Connection;
+        public Parameters Params;
+        public LdapConnection Connection;
 
         public LDAPUtils()
         {
@@ -33,6 +35,25 @@ namespace eshc_diradmin
             public string DN(string subdn)
             {
                 return subdn + "," + RootDN;
+            }
+
+            public string TrimGroupName(string groupDN)
+            {
+                if (groupDN.StartsWith("cn="))
+                {
+                    groupDN = groupDN.Substring("cn=".Length);
+                }
+                string sfx = ",ou=Groups," + RootDN;
+                if (groupDN.EndsWith(sfx))
+                {
+                    groupDN = groupDN.Substring(0, groupDN.Length - sfx.Length);
+                }
+                return groupDN;
+            }
+
+            public string GroupNameToDN(string groupName)
+            {
+                return String.Format("cn={0},ou=Groups,{1}", groupName, RootDN);
             }
         }
 
@@ -53,14 +74,47 @@ namespace eshc_diradmin
             }
         }
 
+        public struct MemberInfo
+        {
+            public string[] Groups;
+
+            public string FirstName; // cn
+            public string Surname; // sn
+            public string UID;
+            public string DisplayName;
+            public string Mail;
+            public string Flat; // postalAddress
+            public string TelephoneNumber;
+
+            public MemberInfo(LdapEntry e, LDAPUtils ldap)
+            {
+                FirstName = e.GetAttribute("cn").StringValue ?? "";
+                Surname = e.GetAttribute("sn").StringValue ?? "";
+                UID = e.GetAttribute("uid").StringValue ?? "";
+                DisplayName = e.GetAttribute("displayName").StringValue ?? "";
+                Mail = e.GetAttribute("mail").StringValue ?? "";
+                Flat = e.GetAttribute("postalAddress").StringValue ?? "";
+                TelephoneNumber = e.GetAttribute("telephoneNumber").StringValue ?? "";
+                var memof = e.GetAttribute("memberOf");
+                if (memof != null)
+                {
+                    Groups = memof.StringValueArray.Select(ldap.Params.TrimGroupName).ToArray();
+                }
+                else
+                {
+                    Groups = new string[] { };
+                }
+            }
+        }
+
         public struct AuthResult
         {
-            public bool Valid;
+            public bool ValidCredentrials;
+            public bool Active;
             public bool SuperAdmin;
             public string DN;
             public string DisplayName;
         }
-
 
         static Regex ldapFieldRegex = new Regex(@"[ a-zA-Z0-9@_-]*");
         public static bool ValidateLDAPField(string field)
@@ -80,7 +134,7 @@ namespace eshc_diradmin
             if (!ValidateLDAPField(username))
             {
                 logger.LogWarning("Tried LDAP injection: " + username);
-                return new AuthResult { Valid = false };
+                return new AuthResult { ValidCredentrials = false, Active = false };
             }
 
             RfcFilter query = new RfcFilter();
@@ -109,7 +163,7 @@ namespace eshc_diradmin
                     if (res != null)
                     {
                         logger.LogError("LDAP login returned multiple results: " + username);
-                        return new AuthResult { Valid = false };
+                        return new AuthResult { ValidCredentrials = false, Active = false };
                     }
                     res = r;
                     logger.LogInformation("LDAP login found user DN: " + res.Dn);
@@ -118,10 +172,11 @@ namespace eshc_diradmin
             if (res == null)
             {
                 logger.LogError("LDAP login failed to find account: " + username);
-                return new AuthResult { Valid = false };
+                return new AuthResult { ValidCredentrials = false, Active = false };
             }
 
-            ar.Valid = false;
+            ar.ValidCredentrials = false;
+            ar.Active = false;
             ar.SuperAdmin = false;
             ar.DN = res.Dn;
             ar.DisplayName = res.GetAttribute("displayName").StringValue ?? res.Dn;
@@ -141,17 +196,19 @@ namespace eshc_diradmin
                 catch (LdapException)
                 {
                     logger.LogError("LDAP login: wrong password for account: " + ar.DN);
-                    return new AuthResult { Valid = false };
+                    return new AuthResult { ValidCredentrials = false, Active = false };
                 }
                 if (!Connection.Bound)
                 {
                     logger.LogError("LDAP login: could not bind account: " + ar.DN);
-                    return new AuthResult { Valid = false };
+                    return new AuthResult { ValidCredentrials = false, Active = false };
                 }
             }
 
+            ar.ValidCredentrials = true;
+
             var groups = res.GetAttribute("memberOf").StringValueArray;
-            ar.Valid = groups.Contains(Params.DN("cn=AllMembers,ou=Groups"));
+            ar.Active = groups.Contains(Params.DN("cn=AllMembers,ou=Groups"));
             ar.SuperAdmin = groups.Contains(Params.DN("cn=InternetSpecialists,ou=Groups"));
 
             foreach (var group in groups)
@@ -159,7 +216,7 @@ namespace eshc_diradmin
                 logger.LogDebug("Group: " + group);
             }
 
-            return ar.Valid ? ar : new AuthResult { Valid = false };
+            return ar.Active ? ar : new AuthResult { ValidCredentrials = true, Active = false };
         }
     }
 }

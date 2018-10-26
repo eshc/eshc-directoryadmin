@@ -1,9 +1,36 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "My Details";
 }
 
-<div class="row">
-    
+<div class="panel-group">
+<div class="panel panel-default">
+    <div class="panel-heading">My details</div>
+    <div class="panel-body">
+    <table class="table table-hover table-striped table-bordered">
+        <tbody>
+            <tr><td style="font-weight:bold; text-align:right">Login</td><td>@Model.MyInfo.UID</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Preferred name</td><td>@Model.MyInfo.DisplayName</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">First name</td><td>@Model.MyInfo.FirstName</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Surname</td><td>@Model.MyInfo.Surname</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">E-mail</td><td>@Model.MyInfo.Mail</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Flat and room</td><td>@Model.MyInfo.Flat</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Telephone number</td><td>@Model.MyInfo.TelephoneNumber</td></tr>
+        </tbody>
+    </table>
+</div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">My groups</div>
+    <div class="panel-body">
+    <ul class="list-group">
+        @foreach(var Group in Model.MyInfo.Groups)
+        {
+            <li class="list-group-item">@Group</li>
+        }
+    </ul>
+    </div>
+</div>
 </div>

@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -17,8 +18,8 @@
     </environment>
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -28,23 +29,34 @@
                 </button>
                 <a asp-page="/Index" class="navbar-brand">ESHC Directory Administration Tool</a>
             </div>
+            @if (User.Identity.IsAuthenticated && (string)ViewData["Title"] != "Logout")
+            {
+            <p class="navbar-text">Logged in as: @User.FindFirstValue(ClaimTypes.Name)</p>
+            }
             <div class="navbar-collapse collapse">
+                @if (User.Identity.IsAuthenticated && (string)ViewData["Title"] != "Logout")
+                {
                 <ul class="nav navbar-nav">
-                    <li><a asp-page="/Index">Home</a></li>
-                    @if (User.Identity.IsAuthenticated && (string)ViewData["Title"] != "Logout")
-                    {
-                    <li><a asp-page="/Logout">Log Out</a></li>
-                    }
-                    else
-                    {
-                    <li><a asp-page="/Login">Log In</a></li>
-                    }
+                    <li><a asp-page="/Index"><span class="glyphicon glyphicon-user"></span> My details</a></li>
+                </ul>
+                }
+                <ul class="nav navbar-nav navbar-right">
+                @if (User.Identity.IsAuthenticated && (string)ViewData["Title"] != "Logout")
+                {
+                    <li><a asp-page="/Logout"><span class="glyphicon glyphicon-log-out"></span> Log Out</a></li>
+                }
+                else
+                {
+                    <li><a asp-page="/Login"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                }
                 </ul>
             </div>
         </div>
     </nav>
 
     <partial name="_CookieConsentPartial" />
+
+    <br/>
 
     <div class="container body-content">
         @RenderBody()

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -20,22 +21,28 @@ namespace eshc_diradmin.Pages
             if (ModelState.IsValid)
             {
                 Result = Startup.ldap.Authenticate(loginData.Username, loginData.Password);
-                var isValid = (loginData.Username == "username" && loginData.Password == "password");
-                if (!isValid)
+                if (!Result.ValidCredentrials)
                 {
-                    ModelState.AddModelError("", "username or password is invalid");
+                    ModelState.AddModelError("", "Username or password is invalid");
+                    return Page();
+                }
+                if (!Result.Active)
+                {
+                    ModelState.AddModelError("", "Your account hasn't been verified by an administrator yet");
                     return Page();
                 }
                 var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
-                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, loginData.Username));
-                identity.AddClaim(new Claim(ClaimTypes.Name, loginData.Username));
+                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Result.DN));
+                identity.AddClaim(new Claim(ClaimTypes.Name, Result.DisplayName));
+                identity.AddClaim(new Claim("SuperAdmin", Result.SuperAdmin.ToString()));
                 var principal = new ClaimsPrincipal(identity);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties { IsPersistent = loginData.RememberMe });
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+                    new AuthenticationProperties { IsPersistent = loginData.RememberMe });
                 return RedirectToPage("Index");
             }
             else
             {
-                ModelState.AddModelError("", "username or password is blank");
+                ModelState.AddModelError("", "Username or password is blank");
                 return Page();
             }
         }
