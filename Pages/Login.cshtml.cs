@@ -13,10 +13,13 @@ namespace eshc_diradmin.Pages
         [BindProperty]
         public LoginData loginData { get; set; }
 
+        public LDAPUtils.AuthResult Result;
+
         public async Task<IActionResult> OnPostAsync()
         {
             if (ModelState.IsValid)
             {
+                Result = Startup.ldap.Authenticate(loginData.Username, loginData.Password);
                 var isValid = (loginData.Username == "username" && loginData.Password == "password");
                 if (!isValid)
                 {
