@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,6 +32,11 @@ namespace eshc_diradmin
             var ldapParams = Configuration.GetSection("LDAP").Get<LDAPUtils.Parameters>();
             ldap = new LDAPUtils();
             ldap.ValidateParametersAndConnect(ldapParams);
+
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.KnownProxies.Add(IPAddress.Parse("10.10.10.4"));
+            });
 
             services.Configure<CookiePolicyOptions>(options =>
             {
