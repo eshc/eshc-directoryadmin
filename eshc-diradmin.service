@@ -1,0 +1,17 @@
+[Unit]
+Description=ESHC Directory Administration Tool
+
+[Service]
+WorkingDirectory=/var/www/eshc-diradmin
+ExecStart=/usr/bin/dotnet /var/www/eshc-diradmin/eshc-diradmin.dll --server.urls=http://0.0.0.0:5000
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=3
+KillSignal=SIGINT
+SyslogIdentifier=dotnet-eshc-diradmin
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
