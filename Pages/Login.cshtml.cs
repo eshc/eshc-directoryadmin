@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Security;
@@ -38,7 +39,7 @@ namespace eshc_diradmin.Pages
                 identity.AddClaim(new Claim("SuperAdmin", Result.SuperAdmin.ToString()));
                 var principal = new ClaimsPrincipal(identity);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
-                    new AuthenticationProperties { IsPersistent = loginData.RememberMe });
+                    new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTime.UtcNow.AddMinutes(20) });
                 return RedirectToPage("Index");
             }
             else
