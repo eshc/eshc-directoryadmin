@@ -31,12 +31,12 @@ namespace eshc_diradmin
             ldap = new LDAPUtils();
             ldap.ValidateParametersAndConnect(ldapParams);
 
-            /*services.Configure<CookiePolicyOptions>(options =>
+            services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
+                options.CheckConsentNeeded = context => false;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
-            });*/
+            });
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
             {
@@ -69,7 +69,7 @@ namespace eshc_diradmin
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseAuthentication();
-            //app.UseCookiePolicy();
+            app.UseCookiePolicy();
 
             app.UseMvc();
         }

@@ -17,6 +17,7 @@ namespace eshc_diradmin.Pages
 
         public void OnGet()
         {
+            Startup.ldap.EnsureConnection();
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
         }
     }

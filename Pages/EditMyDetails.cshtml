@@ -1,0 +1,34 @@
+﻿@page
+@model EditMyDetailsModel
+@{
+    ViewData["Title"] = "Editing My Details";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">My details</div>
+    <div class="panel-body">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <form method="POST">
+    <table class="table table-hover table-striped table-bordered">
+        <tbody>
+            <tr><td style="font-weight:bold; text-align:right">Login</td><td>@Model.MyInfo.UID</td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Preferred name</td><td>
+                <input class="form-control" asp-for="newDetails.PreferredName" value="@Model.MyInfo.DisplayName"/></td></tr>
+            <tr><td style="font-weight:bold; text-align:right">First name(s) (Legal, as on your ID/passport)</td><td>
+                <input class="form-control" asp-for="newDetails.FirstName" value="@Model.MyInfo.FirstName"/></td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Surname (Legal, as on your ID/passport)</td><td>
+                <input class="form-control" asp-for="newDetails.Surname" value="@Model.MyInfo.Surname"/></td></tr>
+            <tr><td style="font-weight:bold; text-align:right">E-mail</td><td>
+                <input type="email" class="form-control" asp-for="newDetails.Mail" value="@Model.MyInfo.Mail"/></td></tr>
+            <tr><td style="font-weight:bold; text-align:right">Flat and room (For example 28/03B)</td><td>
+                <input class="form-control" asp-for="newDetails.Flat" value="@Model.MyInfo.Flat"/></td></tr>                
+            <tr><td style="font-weight:bold; text-align:right">Telephone number</td><td>
+                <input class="form-control" asp-for="newDetails.TelephoneNumber" value="@Model.MyInfo.TelephoneNumber"/></td></tr>                
+            <tr><td></td><td><button type="submit" class="btn btn-primary">Submit</button></td></tr>
+        </tbody>
+    </table>
+    @Html.AntiForgeryToken()
+    </form>
+</div>
+
+</div>

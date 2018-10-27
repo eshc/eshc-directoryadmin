@@ -4,10 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Security.Cryptography;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Net;
 using Novell.Directory.Ldap;
 using Novell.Directory.Ldap.Rfc2251;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,15 +66,23 @@ namespace eshc_diradmin
             Params = prams;
 
             Connection = new LdapConnection { SecureSocketLayer = false };
-            Connection.Connect(Params.Host, Params.Port);
+            EnsureConnection();
+        }
+
+        public void EnsureConnection()
+        {
             if (!Connection.Connected)
             {
-                throw new System.Exception("Could not connect to the LDAP server at " + Params.Host + ":" + Params.Port);
-            }
-            Connection.Bind(Params.DN(Params.ManagerDN), Params.ManagerPW);
-            if (!Connection.Bound)
-            {
-                throw new System.Exception("Could not bind to the LDAP server with username " + Params.DN(Params.ManagerDN));
+                Connection.Connect(Params.Host, Params.Port);
+                if (!Connection.Connected)
+                {
+                    throw new System.Exception("Could not connect to the LDAP server at " + Params.Host + ":" + Params.Port);
+                }
+                Connection.Bind(Params.DN(Params.ManagerDN), Params.ManagerPW);
+                if (!Connection.Bound)
+                {
+                    throw new System.Exception("Could not bind to the LDAP server with username " + Params.DN(Params.ManagerDN));
+                }
             }
         }
 
@@ -86,15 +98,33 @@ namespace eshc_diradmin
             public string Flat; // postalAddress
             public string TelephoneNumber;
 
+            public static string[] LdapAttrList = {
+                "cn", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "memberOf" };
+
+            static string GetOptAttr(LdapEntry e, string name)
+            {
+                if (e == null)
+                {
+                    return "";
+                }
+                var a = e.GetAttribute(name);
+                if (a == null)
+                {
+                    return "";
+                }
+                return a.StringValue ?? "";
+            }
+
             public MemberInfo(LdapEntry e, LDAPUtils ldap)
             {
-                FirstName = e.GetAttribute("cn").StringValue ?? "";
-                Surname = e.GetAttribute("sn").StringValue ?? "";
-                UID = e.GetAttribute("uid").StringValue ?? "";
-                DisplayName = e.GetAttribute("displayName").StringValue ?? "";
-                Mail = e.GetAttribute("mail").StringValue ?? "";
-                Flat = e.GetAttribute("postalAddress").StringValue ?? "";
-                TelephoneNumber = e.GetAttribute("telephoneNumber").StringValue ?? "";
+                ldap.logger.LogInformation("Reading user info for " + e.Dn);
+                FirstName = GetOptAttr(e, "cn");
+                Surname = GetOptAttr(e, "sn");
+                UID = GetOptAttr(e, "uid");
+                DisplayName = GetOptAttr(e, "displayName");
+                Mail = GetOptAttr(e, "mail");
+                Flat = GetOptAttr(e, "postalAddress");
+                TelephoneNumber = GetOptAttr(e, "telephoneNumber");
                 var memof = e.GetAttribute("memberOf");
                 if (memof != null)
                 {
@@ -105,6 +135,18 @@ namespace eshc_diradmin
                     Groups = new string[] { };
                 }
             }
+        }
+
+        public MemberInfo? FetchMemberInfo(ClaimsPrincipal user, HttpContext httpContext)
+        {
+            var DN = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (DN == null)
+            {
+                httpContext.SignOutAsync().Wait();
+                return null;
+            }
+            var Entry = Startup.ldap.Connection.Read(DN, LDAPUtils.MemberInfo.LdapAttrList);
+            return new LDAPUtils.MemberInfo(Entry, Startup.ldap);
         }
 
         public struct AuthResult
@@ -184,21 +226,21 @@ namespace eshc_diradmin
             // try login
             using (LdapConnection userConn = new LdapConnection { SecureSocketLayer = false })
             {
-                Connection.Connect(Params.Host, Params.Port);
-                if (!Connection.Connected)
+                userConn.Connect(Params.Host, Params.Port);
+                if (!userConn.Connected)
                 {
                     throw new System.Exception("Could not connect to the LDAP server at " + Params.Host + ":" + Params.Port);
                 }
                 try
                 {
-                    Connection.Bind(ar.DN, password);
+                    userConn.Bind(ar.DN, password);
                 }
                 catch (LdapException)
                 {
                     logger.LogError("LDAP login: wrong password for account: " + ar.DN);
                     return new AuthResult { ValidCredentrials = false, Active = false };
                 }
-                if (!Connection.Bound)
+                if (!userConn.Bound)
                 {
                     logger.LogError("LDAP login: could not bind account: " + ar.DN);
                     return new AuthResult { ValidCredentrials = false, Active = false };
@@ -217,6 +259,18 @@ namespace eshc_diradmin
             }
 
             return ar.Active ? ar : new AuthResult { ValidCredentrials = true, Active = false };
+        }
+
+        private static RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
+
+        public static string EncodeSSHA(string password)
+        {
+            byte[] salt = new byte[16];
+            rngCsp.GetNonZeroBytes(salt);
+            byte[] pwd = System.Text.Encoding.UTF8.GetBytes(password);
+            byte[] saltedPwd = pwd.Concat(salt).ToArray();
+            byte[] sha = SHA256.Create().ComputeHash(saltedPwd);
+            return "{SSHA256}" + Convert.ToBase64String(sha.Concat(salt).ToArray());
         }
     }
 }

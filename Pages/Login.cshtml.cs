@@ -18,6 +18,7 @@ namespace eshc_diradmin.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            Startup.ldap.EnsureConnection();
             if (ModelState.IsValid)
             {
                 Result = Startup.ldap.Authenticate(loginData.Username, loginData.Password);

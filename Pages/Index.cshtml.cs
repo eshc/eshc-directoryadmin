@@ -15,18 +15,16 @@ namespace eshc_diradmin.Pages
 
         public void OnGet()
         {
+            Startup.ldap.EnsureConnection();
             if (!HttpContext.User.Identity.IsAuthenticated)
             {
                 return;
             }
-            var DN = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (DN == null)
+            var mi = Startup.ldap.FetchMemberInfo(User, HttpContext);
+            if (mi.HasValue)
             {
-                HttpContext.SignOutAsync().Wait();
-                return;
+                MyInfo = mi.Value;
             }
-            var Entry = Startup.ldap.Connection.Read(DN, new string[] { "*", "memberOf" });
-            MyInfo = new LDAPUtils.MemberInfo(Entry, Startup.ldap);
         }
     }
 }
