@@ -18,6 +18,7 @@ namespace eshc_diradmin
     public class Startup
     {
         public static LDAPUtils ldap;
+        public static string migrateSecret;
 
         public Startup(IConfiguration configuration)
         {
@@ -30,6 +31,7 @@ namespace eshc_diradmin
         public void ConfigureServices(IServiceCollection services)
         {
             var ldapParams = Configuration.GetSection("LDAP").Get<LDAPUtils.Parameters>();
+            migrateSecret = Configuration.GetValue("LDAPUpdateSecret", "");
             ldap = new LDAPUtils();
             ldap.ValidateParametersAndConnect(ldapParams);
 
@@ -56,6 +58,7 @@ namespace eshc_diradmin
                 options.Conventions.AuthorizeFolder("/");
                 options.Conventions.AllowAnonymousToPage("/Login");
                 options.Conventions.AllowAnonymousToPage("/Logout");
+                options.Conventions.AllowAnonymousToPage("/LDAPUpdate");
             });
         }
 

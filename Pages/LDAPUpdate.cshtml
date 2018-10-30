@@ -1,0 +1,17 @@
+﻿@page
+@model LdapUpdateModel
+@{
+    ViewData["Title"] = "LDAP Update";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">Trigger LDAP database update</div>
+    <div class="panel-body">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <form method="POST">
+    <input class="form-control" type="password" asp-for="formData.Secret" placeholder="Secret key"/>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+</div>
