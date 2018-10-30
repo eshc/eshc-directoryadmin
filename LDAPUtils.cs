@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -86,6 +87,20 @@ namespace eshc_diradmin
             }
         }
 
+        static string GetOptAttr(LdapEntry e, string name)
+        {
+            if (e == null)
+            {
+                return "";
+            }
+            var a = e.GetAttribute(name);
+            if (a == null)
+            {
+                return "";
+            }
+            return a.StringValue ?? "";
+        }
+
         public class MemberInfo
         {
             public string DN;
@@ -104,20 +119,6 @@ namespace eshc_diradmin
 
             public static string[] LdapAttrList = {
                 "cn", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "employeeNumber", "userPassword", "memberOf" };
-
-            static string GetOptAttr(LdapEntry e, string name)
-            {
-                if (e == null)
-                {
-                    return "";
-                }
-                var a = e.GetAttribute(name);
-                if (a == null)
-                {
-                    return "";
-                }
-                return a.StringValue ?? "";
-            }
 
             public MemberInfo(LdapEntry e, LDAPUtils ldap)
             {
@@ -138,7 +139,7 @@ namespace eshc_diradmin
                 var memof = e.GetAttribute("memberOf");
                 if (memof != null)
                 {
-                    Groups = memof.StringValueArray.Select(ldap.Params.TrimGroupName).ToArray();
+                    Groups = memof.StringValueArray;
                 }
                 else
                 {
@@ -168,7 +169,27 @@ namespace eshc_diradmin
             {
                 mems.Add(new MemberInfo(entry, this));
             }
+            mems.Sort((a,b) => a.Surname.CompareTo(b.Surname));
             return mems;
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <returns>A dictionary of pairs: (ldapName, displayName)</returns>
+        public SortedDictionary<string, string> FetchAllGroups()
+        {
+            var result = new SortedDictionary<string, string>();
+            var entries = Connection.Search(Params.DN("ou=Groups"),
+                LdapConnection.ScopeOne, "(objectClass=groupOfNames)", new string[] { "description" }, false);
+            foreach (var entry in entries)
+            {
+                string dn = entry.Dn;
+                string dsc = GetOptAttr(entry, "description");
+                if (dsc.Length < 1)
+                    dsc = dn;
+                result.Add(dn, dsc);
+            }
+            return result;
         }
 
         public struct AuthResult

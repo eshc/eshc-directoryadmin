@@ -18,7 +18,7 @@
     </environment>
 </head>
 <body>
-    <nav class="navbar navbar-default navbar-fixed-top">
+    <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -40,6 +40,10 @@
                     <li><a asp-page="/Index"><span class="glyphicon glyphicon-user"></span> My details</a></li>
                     <li><a asp-page="/EditMyDetails"><span class="glyphicon glyphicon-edit"></span> Edit details</a></li>
                     <li><a asp-page="/ChangePwd"><span class="glyphicon glyphicon-lock"></span> Change password</a></li>
+                    @if (bool.Parse(User.FindFirstValue("SuperAdmin")))
+                    {
+                    <li><a asp-page="/Superadmin"><span class="glyphicon glyphicon-th-list"></span> Delegate permissions</a></li>
+                    }
                 </ul>
                 }
                 <ul class="nav navbar-nav navbar-right">

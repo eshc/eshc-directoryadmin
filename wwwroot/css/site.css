@@ -1,7 +1,7 @@
 /* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification 
 for details on configuring this project to bundle and minify static web assets. */
 body {
-    padding-top: 50px;
+    padding-top: 0px;
     padding-bottom: 20px;
 }
 
@@ -34,4 +34,25 @@ body {
     .carousel-caption {
         display: none;
     }
+}
+
+.tableFixHead {
+overflow-y: auto;
+height: 100px;
+}
+
+.tableFixHead table {
+border-collapse: collapse;
+width: 100%;
+}
+
+.tableFixHead th,
+.tableFixHead td {
+padding: 8px 16px;
+}
+
+.tableFixHead th {
+position: sticky;
+top: 0;
+background: #eee;
 }
