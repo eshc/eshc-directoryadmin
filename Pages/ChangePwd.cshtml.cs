@@ -32,15 +32,7 @@ namespace eshc_diradmin.Pages
                 HttpContext.SignOutAsync().Wait();
                 return;
             }
-            var mi = Startup.ldap.FetchMemberInfo(User, HttpContext);
-            if (mi.HasValue)
-            {
-                MyInfo = mi.Value;
-            }
-            else
-            {
-                return;
-            }
+            MyInfo = Startup.ldap.FetchMemberInfo(User, HttpContext);
         }
 
         public IActionResult OnPost()
@@ -56,12 +48,8 @@ namespace eshc_diradmin.Pages
                 HttpContext.SignOutAsync().Wait();
                 return RedirectToPage("Login");
             }
-            var mi = Startup.ldap.FetchMemberInfo(User, HttpContext);
-            if (mi.HasValue)
-            {
-                MyInfo = mi.Value;
-            }
-            else
+            MyInfo = Startup.ldap.FetchMemberInfo(User, HttpContext);
+            if (MyInfo == null)
             {
                 return RedirectToPage("Login");
             }

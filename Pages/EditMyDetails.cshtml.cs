@@ -32,15 +32,7 @@ namespace eshc_diradmin.Pages
                 HttpContext.SignOutAsync().Wait();
                 return;
             }
-            var mi = Startup.ldap.FetchMemberInfo(User, HttpContext);
-            if (mi.HasValue)
-            {
-                MyInfo = mi.Value;
-            }
-            else
-            {
-                return;
-            }
+            MyInfo = Startup.ldap.FetchMemberInfo(User, HttpContext);
         }
 
         public IActionResult OnPost()
@@ -56,12 +48,8 @@ namespace eshc_diradmin.Pages
                 HttpContext.SignOutAsync().Wait();
                 return RedirectToPage("Login");
             }
-            var mi = Startup.ldap.FetchMemberInfo(User, HttpContext);
-            if (mi.HasValue)
-            {
-                MyInfo = mi.Value;
-            }
-            else
+            MyInfo = Startup.ldap.FetchMemberInfo(User, HttpContext);
+            if (MyInfo == null)
             {
                 return RedirectToPage("Login");
             }
@@ -133,9 +121,8 @@ namespace eshc_diradmin.Pages
             [Required, DataType(DataType.EmailAddress)]
             public string Mail { get; set; }
 
-            [Display(Name = "Flat and room")]
-            [Required, RegularExpression(@"^(28|34)/[0-9][0-9][A-E]$",
-                ErrorMessage = "Please follow the 28/03E format for the Flat field")]
+            [Display(Name = "Permanent address")]
+            [Required]
             public string Flat { get; set; }
 
             [Display(Name = "Telephone number")]

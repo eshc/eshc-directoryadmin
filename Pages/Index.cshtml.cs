@@ -20,11 +20,7 @@ namespace eshc_diradmin.Pages
             {
                 return;
             }
-            var mi = Startup.ldap.FetchMemberInfo(User, HttpContext);
-            if (mi.HasValue)
-            {
-                MyInfo = mi.Value;
-            }
+            MyInfo = Startup.ldap.FetchMemberInfo(User, HttpContext);
         }
     }
 }

@@ -86,8 +86,9 @@ namespace eshc_diradmin
             }
         }
 
-        public struct MemberInfo
+        public class MemberInfo
         {
+            public string DN;
             public string[] Groups;
 
             public string FirstName; // cn
@@ -97,9 +98,12 @@ namespace eshc_diradmin
             public string Mail;
             public string Flat; // postalAddress
             public string TelephoneNumber;
+            public string Password;
+
+            public int DjangoAccount;
 
             public static string[] LdapAttrList = {
-                "cn", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "memberOf" };
+                "cn", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "employeeNumber", "userPassword", "memberOf" };
 
             static string GetOptAttr(LdapEntry e, string name)
             {
@@ -118,6 +122,7 @@ namespace eshc_diradmin
             public MemberInfo(LdapEntry e, LDAPUtils ldap)
             {
                 ldap.logger.LogInformation("Reading user info for " + e.Dn);
+                DN = e.Dn;
                 FirstName = GetOptAttr(e, "cn");
                 Surname = GetOptAttr(e, "sn");
                 UID = GetOptAttr(e, "uid");
@@ -125,6 +130,11 @@ namespace eshc_diradmin
                 Mail = GetOptAttr(e, "mail");
                 Flat = GetOptAttr(e, "postalAddress");
                 TelephoneNumber = GetOptAttr(e, "telephoneNumber");
+                Password = GetOptAttr(e, "userPassword");
+                if (!Int32.TryParse(GetOptAttr(e, "employeeNumber"), out DjangoAccount))
+                {
+                    DjangoAccount = -1;
+                }
                 var memof = e.GetAttribute("memberOf");
                 if (memof != null)
                 {
@@ -137,7 +147,7 @@ namespace eshc_diradmin
             }
         }
 
-        public MemberInfo? FetchMemberInfo(ClaimsPrincipal user, HttpContext httpContext)
+        public MemberInfo FetchMemberInfo(ClaimsPrincipal user, HttpContext httpContext)
         {
             var DN = user.FindFirstValue(ClaimTypes.NameIdentifier);
             if (DN == null)
@@ -147,6 +157,18 @@ namespace eshc_diradmin
             }
             var Entry = Startup.ldap.Connection.Read(DN, LDAPUtils.MemberInfo.LdapAttrList);
             return new LDAPUtils.MemberInfo(Entry, Startup.ldap);
+        }
+
+        public List<MemberInfo> FetchAllMembersInfo()
+        {
+            var mems = new List<MemberInfo>();
+            var entries = Connection.Search(Params.DN("ou=Members"),
+                LdapConnection.ScopeOne, "(objectClass=inetOrgPerson)", MemberInfo.LdapAttrList, false);
+            foreach (var entry in entries)
+            {
+                mems.Add(new MemberInfo(entry, this));
+            }
+            return mems;
         }
 
         public struct AuthResult

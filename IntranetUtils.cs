@@ -22,7 +22,7 @@ namespace eshc_diradmin
     {
         private static readonly ILogger logger = new Microsoft.Extensions.Logging.Console.ConsoleLogger("intranetpgsql", (x, y) => true, true);
 
-        public static List<User> GetCurrentUserList(IConfiguration cfg)
+        public static Dictionary<int, User> GetCurrentUserList(IConfiguration cfg)
         {
             var users = new Dictionary<int, User>();
             var dbpar = cfg.GetSection("IntranetDB").Get<Parameters>();
@@ -63,6 +63,7 @@ namespace eshc_diradmin
                             User u;
                             if (!users.TryGetValue(r.GetInt32(0), out u))
                             {
+                                logger.LogWarning("Could not find user data for id " + r.GetInt32(0));
                                 continue;
                             }
                             u.PermanentAddress = r.GetString(1);
@@ -72,7 +73,7 @@ namespace eshc_diradmin
                         }
                 }
             }
-            return users.Values.Where(u => u.ShareReceived).ToList();
+            return users.Select(p => p.Value).Where(u => u.ShareReceived).ToDictionary(u => u.Id);
         }
 
         public class Parameters
