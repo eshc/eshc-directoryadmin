@@ -89,6 +89,7 @@ namespace eshc_diradmin.Pages
                     string b64salt = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(salt));
                     ldapPwd = "{PBKDF2-SHA256}" + iters + "$" + b64salt + "$" + bdk;
                 }
+                string ldapCn = iu.FirstName + " " + iu.LastName;
                 if (!llut.ContainsKey(iu.Id))
                 {
                     // create entry
@@ -97,10 +98,11 @@ namespace eshc_diradmin.Pages
                     var ast = new LdapAttributeSet();
                     ast.Add(new LdapAttribute("objectClass", new string[] {
                         "top", "person", "organizationalPerson", "shadowAccount", "inetOrgPerson", "Nextcloud"}));
-                    ast.Add(new LdapAttribute("cn", iu.FirstName));
+                    ast.Add(new LdapAttribute("cn", ldapCn));
+                    ast.Add(new LdapAttribute("givenName", iu.FirstName));
                     ast.Add(new LdapAttribute("sn", iu.LastName));
                     ast.Add(new LdapAttribute("uid", iu.Username));
-                    ast.Add(new LdapAttribute("displayName", iu.FirstName));
+                    ast.Add(new LdapAttribute("displayName", ldapCn));
                     ast.Add(new LdapAttribute("employeeNumber", iu.Id.ToString()));
                     ast.Add(new LdapAttribute("mail", iu.Email));
                     ast.Add(new LdapAttribute("NextcloudQuota", "1GB"));
@@ -120,10 +122,15 @@ namespace eshc_diradmin.Pages
                     // update entry
                     var lu = llut[iu.Id];
                     List<LdapModification> modifications = new List<LdapModification>();
+                    if (ldapCn != lu.FullName)
+                    {
+                        modifications.Add(new LdapModification(LdapModification.Replace,
+                            new LdapAttribute("cn", ldapCn)));
+                    }
                     if (iu.FirstName != lu.FirstName)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
-                            new LdapAttribute("cn", iu.FirstName)));
+                            new LdapAttribute("givenName", iu.FirstName)));
                     }
                     if (iu.LastName != lu.Surname)
                     {
@@ -145,7 +152,7 @@ namespace eshc_diradmin.Pages
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("postalAddress", iu.PermanentAddress)));
                     }
-                    if (iu.PhoneNumber != lu.TelephoneNumber)
+                    if (iu.PhoneNumber != "0")
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("telephoneNumber", "0")));

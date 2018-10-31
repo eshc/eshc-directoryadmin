@@ -106,7 +106,8 @@ namespace eshc_diradmin
             public string DN;
             public string[] Groups;
 
-            public string FirstName; // cn
+            public string FullName; // cn
+            public string FirstName; // givenName
             public string Surname; // sn
             public string UID;
             public string DisplayName;
@@ -118,13 +119,14 @@ namespace eshc_diradmin
             public int DjangoAccount;
 
             public static string[] LdapAttrList = {
-                "cn", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "employeeNumber", "userPassword", "memberOf" };
+                "cn", "givenName", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "employeeNumber", "userPassword", "memberOf" };
 
             public MemberInfo(LdapEntry e, LDAPUtils ldap)
             {
                 ldap.logger.LogInformation("Reading user info for " + e.Dn);
                 DN = e.Dn;
-                FirstName = GetOptAttr(e, "cn");
+                FullName = GetOptAttr(e, "cn");
+                FirstName = GetOptAttr(e, "givenName");
                 Surname = GetOptAttr(e, "sn");
                 UID = GetOptAttr(e, "uid");
                 DisplayName = GetOptAttr(e, "displayName");

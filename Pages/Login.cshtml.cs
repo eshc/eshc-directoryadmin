@@ -39,7 +39,7 @@ namespace eshc_diradmin.Pages
                 identity.AddClaim(new Claim("SuperAdmin", Result.SuperAdmin.ToString()));
                 var principal = new ClaimsPrincipal(identity);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
-                    new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTime.UtcNow.AddMinutes(20) });
+                    new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTime.UtcNow.AddHours(2) });
                 return RedirectToPage("Index");
             }
             else
