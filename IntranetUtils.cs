@@ -56,7 +56,7 @@ namespace eshc_diradmin
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = conn;
-                    cmd.CommandText = "SELECT user_id,perm_address,phone_number,ref_number,share_received FROM public.users_profile;";
+                    cmd.CommandText = "SELECT user_id,perm_address,phone_number,ref_number,share_received,preferred_name FROM public.users_profile;";
                     using (var r = cmd.ExecuteReader())
                         while (r.Read())
                         {
@@ -70,6 +70,11 @@ namespace eshc_diradmin
                             u.PhoneNumber = r.GetString(2);
                             u.FinanceRefNumber = r.GetString(3);
                             u.ShareReceived = r.GetBoolean(4);
+                            u.PreferredName = r.GetString(5);
+                            if (u.PreferredName.Length < 1)
+                            {
+                                u.PreferredName = u.FirstName;
+                            }
                         }
                 }
             }
@@ -98,6 +103,7 @@ namespace eshc_diradmin
             public string LastName { get; set; }
             public string Email { get; set; }
             // users_profile
+            public string PreferredName { get; set; }
             public string PermanentAddress { get; set; }
             public string PhoneNumber { get; set; }
             public string FinanceRefNumber { get; set; }

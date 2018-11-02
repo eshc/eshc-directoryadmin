@@ -102,7 +102,7 @@ namespace eshc_diradmin.Pages
                     ast.Add(new LdapAttribute("givenName", iu.FirstName));
                     ast.Add(new LdapAttribute("sn", iu.LastName));
                     ast.Add(new LdapAttribute("uid", iu.Username));
-                    ast.Add(new LdapAttribute("displayName", ldapCn));
+                    ast.Add(new LdapAttribute("displayName", iu.PreferredName));
                     ast.Add(new LdapAttribute("employeeNumber", iu.Id.ToString()));
                     ast.Add(new LdapAttribute("mail", iu.Email));
                     ast.Add(new LdapAttribute("NextcloudQuota", "1GB"));
@@ -137,10 +137,10 @@ namespace eshc_diradmin.Pages
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("sn", iu.LastName)));
                     }
-                    if (iu.FirstName != lu.DisplayName)
+                    if (iu.PreferredName != lu.DisplayName)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
-                            new LdapAttribute("displayName", iu.FirstName)));
+                            new LdapAttribute("displayName", iu.PreferredName)));
                     }
                     if (iu.Email != lu.Mail)
                     {
