@@ -152,7 +152,7 @@ namespace eshc_diradmin.Pages
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("postalAddress", iu.PermanentAddress)));
                     }
-                    if (iu.PhoneNumber != "0")
+                    if ("0" != lu.TelephoneNumber)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("telephoneNumber", "0")));

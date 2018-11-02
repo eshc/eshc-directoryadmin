@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,11 @@ namespace eshc_diradmin
             migrateSecret = Configuration.GetValue("LDAPUpdateSecret", "");
             ldap = new LDAPUtils();
             ldap.ValidateParametersAndConnect(ldapParams);
+
+            services.Configure<FormOptions>(options =>
+            {
+                options.ValueCountLimit = 1 << 24;
+            });
 
             services.Configure<ForwardedHeadersOptions>(options =>
             {
