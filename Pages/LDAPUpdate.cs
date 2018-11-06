@@ -109,13 +109,20 @@ namespace eshc_diradmin.Pages
                     ast.Add(new LdapAttribute("postalAddress", iu.PermanentAddress));
                     ast.Add(new LdapAttribute("telephoneNumber", "0" /*iu.PhoneNumber*/));
                     ast.Add(new LdapAttribute("userPassword", ldapPwd));
-                    LdapEntry e = new LdapEntry(dn, ast);
-                    // update ldap db
-                    Startup.ldap.Connection.Add(e);
-                    // update model
-                    var nmi = new LDAPUtils.MemberInfo(e, Startup.ldap);
-                    lusers.Add(nmi);
-                    llut.Add(nmi.DjangoAccount, nmi); // */
+                    try
+                    {
+                        LdapEntry e = new LdapEntry(dn, ast);
+                        // update ldap db
+                        Startup.ldap.Connection.Add(e);
+                        // update model
+                        var nmi = new LDAPUtils.MemberInfo(e, Startup.ldap);
+                        lusers.Add(nmi);
+                        llut.Add(nmi.DjangoAccount, nmi); // */
+                    }
+                    catch (LdapException)
+                    {
+                        Console.WriteLine("Invalid LDAP conversion for " + iu.Username);
+                    }
                 }
                 else
                 {
@@ -167,7 +174,14 @@ namespace eshc_diradmin.Pages
                         continue;
                     }
                     modUsers++;
-                    Startup.ldap.Connection.Modify(lu.DN, modifications.ToArray());
+                    try
+                    {
+                        Startup.ldap.Connection.Modify(lu.DN, modifications.ToArray());
+                    }
+                    catch (LdapException)
+                    {
+                        Console.WriteLine("Invalid LDAP conversion for " + lu.DN);
+                    }
                 }
             }
 
