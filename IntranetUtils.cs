@@ -78,7 +78,8 @@ namespace eshc_diradmin
                         }
                 }
             }
-            return users.Select(p => p.Value).Where(u => u.ShareReceived).ToDictionary(u => u.Id);
+            //return users.Select(p => p.Value).Where(u => u.ShareReceived).ToDictionary(u => u.Id);
+            return users;
         }
 
         public class Parameters
