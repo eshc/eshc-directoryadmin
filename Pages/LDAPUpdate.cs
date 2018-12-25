@@ -107,6 +107,7 @@ namespace eshc_diradmin.Pages
                     ast.Add(new LdapAttribute("mail", iu.Email));
                     ast.Add(new LdapAttribute("NextcloudQuota", "1GB"));
                     ast.Add(new LdapAttribute("postalAddress", iu.PermanentAddress));
+                    ast.Add(new LdapAttribute("roomNumber", iu.Room));
                     ast.Add(new LdapAttribute("telephoneNumber", "0" /*iu.PhoneNumber*/));
                     ast.Add(new LdapAttribute("userPassword", ldapPwd));
                     try
@@ -154,7 +155,12 @@ namespace eshc_diradmin.Pages
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("mail", iu.Email)));
                     }
-                    if (iu.PermanentAddress != lu.Flat)
+                    if (iu.Room != lu.Flat)
+                    {
+                        modifications.Add(new LdapModification(LdapModification.Replace,
+                            new LdapAttribute("roomNumber", iu.Room)));
+                    }
+                    if (iu.PermanentAddress != lu.Address)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("postalAddress", iu.PermanentAddress)));

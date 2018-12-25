@@ -77,6 +77,26 @@ namespace eshc_diradmin
                             }
                         }
                 }
+
+                using (var cmd = new NpgsqlCommand())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandText = "SELECT user_id, building, flat, room from leases_lease where end_date > CURRENT_DATE;";
+                    using (var r = cmd.ExecuteReader())
+                        while (r.Read())
+                        {
+                            User u;
+                            if (!users.TryGetValue(r.GetInt32(0), out u))
+                            {
+                                logger.LogWarning("Could not find user data for id " + r.GetInt32(0));
+                                continue;
+                            }
+                            String building = r.GetString(1);
+                            String flat = r.GetString(2);
+                            String room = r.GetString(3);
+                            u.Room = building + "/" + flat + "r" + room;
+                        }
+                }
             }
             //return users.Select(p => p.Value).Where(u => u.ShareReceived).ToDictionary(u => u.Id);
             return users;
@@ -109,6 +129,8 @@ namespace eshc_diradmin
             public string PhoneNumber { get; set; }
             public string FinanceRefNumber { get; set; }
             public bool ShareReceived { get; set; }
+            // leases_lease
+            public string Room {get;set;} = "0/0Z";
         }
     }
 }

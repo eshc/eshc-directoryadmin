@@ -112,14 +112,15 @@ namespace eshc_diradmin
             public string UID;
             public string DisplayName;
             public string Mail;
-            public string Flat; // postalAddress
+            public string Address; // postalAddress
+            public string Flat; // roomNumber
             public string TelephoneNumber;
             public string Password;
 
             public int DjangoAccount;
 
             public static string[] LdapAttrList = {
-                "cn", "givenName", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "employeeNumber", "userPassword", "memberOf" };
+                "cn", "givenName", "sn", "uid", "displayName", "mail", "postalAddress", "telephoneNumber", "employeeNumber", "userPassword", "memberOf", "roomNumber" };
 
             public MemberInfo(LdapEntry e, LDAPUtils ldap)
             {
@@ -131,7 +132,8 @@ namespace eshc_diradmin
                 UID = GetOptAttr(e, "uid");
                 DisplayName = GetOptAttr(e, "displayName");
                 Mail = GetOptAttr(e, "mail");
-                Flat = GetOptAttr(e, "postalAddress");
+                Address = GetOptAttr(e, "postalAddress");
+                Flat = GetOptAttr(e, "roomNumber");
                 TelephoneNumber = GetOptAttr(e, "telephoneNumber");
                 Password = GetOptAttr(e, "userPassword");
                 if (!Int32.TryParse(GetOptAttr(e, "employeeNumber"), out DjangoAccount))
@@ -171,7 +173,7 @@ namespace eshc_diradmin
             {
                 mems.Add(new MemberInfo(entry, this));
             }
-            mems.Sort((a,b) => a.Surname.CompareTo(b.Surname));
+            mems.Sort((a, b) => a.Surname.CompareTo(b.Surname));
             return mems;
         }
 
@@ -296,7 +298,7 @@ namespace eshc_diradmin
 
             var groups = res.GetAttribute("memberOf").StringValueArray;
             ar.Active = groups.Contains(Params.DN("cn=AllMembers,ou=Groups"));
-            ar.SuperAdmin = groups.Contains(Params.DN("cn=InternetSpecialists,ou=Groups"));
+            ar.SuperAdmin = groups.Contains(Params.DN("cn=InternetSpecialists,ou=Groups")) || groups.Contains(Params.DN("cn=DirectoryEditors,ou=Groups"));
 
             foreach (var group in groups)
             {
