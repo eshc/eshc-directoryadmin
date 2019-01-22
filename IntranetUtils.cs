@@ -91,9 +91,9 @@ namespace eshc_diradmin
                                 logger.LogWarning("Could not find user data for id " + r.GetInt32(0));
                                 continue;
                             }
-                            String building = r.GetString(1);
-                            String flat = r.GetString(2);
-                            String room = r.GetString(3);
+                            String building = r.GetValue(1).ToString();
+                            String flat = r.GetValue(2).ToString();
+                            String room = r.GetValue(3).ToString();
                             u.Room = building + "/" + flat + "r" + room;
                         }
                 }
