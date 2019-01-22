@@ -99,16 +99,23 @@ namespace eshc_diradmin.Pages
                     ast.Add(new LdapAttribute("objectClass", new string[] {
                         "top", "person", "organizationalPerson", "shadowAccount", "inetOrgPerson", "Nextcloud"}));
                     ast.Add(new LdapAttribute("cn", ldapCn));
-                    ast.Add(new LdapAttribute("givenName", iu.FirstName));
-                    ast.Add(new LdapAttribute("sn", iu.LastName));
+                    if (iu.FirstName.Length > 0)
+                        ast.Add(new LdapAttribute("givenName", iu.FirstName));
+                    if (iu.LastName.Length > 0)
+                        ast.Add(new LdapAttribute("sn", iu.LastName));
                     ast.Add(new LdapAttribute("uid", iu.Username));
-                    ast.Add(new LdapAttribute("displayName", iu.PreferredName));
+                    if (iu.PreferredName.Length > 0)
+                        ast.Add(new LdapAttribute("displayName", iu.PreferredName));
                     ast.Add(new LdapAttribute("employeeNumber", iu.Id.ToString()));
-                    ast.Add(new LdapAttribute("mail", iu.Email));
+                    if (iu.Email.Length > 0)
+                        ast.Add(new LdapAttribute("mail", iu.Email));
                     ast.Add(new LdapAttribute("NextcloudQuota", "1GB"));
-                    ast.Add(new LdapAttribute("postalAddress", iu.PermanentAddress));
-                    ast.Add(new LdapAttribute("roomNumber", iu.Room));
-                    ast.Add(new LdapAttribute("telephoneNumber", "0" /*iu.PhoneNumber*/));
+                    if (iu.PermanentAddress.Length > 0)
+                        ast.Add(new LdapAttribute("postalAddress", iu.PermanentAddress));
+                    if (iu.Room.Length > 0)
+                        ast.Add(new LdapAttribute("roomNumber", iu.Room));
+                    if (iu.PhoneNumber.Length > 0)
+                        ast.Add(new LdapAttribute("telephoneNumber", iu.PhoneNumber));
                     ast.Add(new LdapAttribute("userPassword", ldapPwd));
                     try
                     {
@@ -120,9 +127,10 @@ namespace eshc_diradmin.Pages
                         lusers.Add(nmi);
                         llut.Add(nmi.DjangoAccount, nmi); // */
                     }
-                    catch (LdapException)
+                    catch (LdapException e)
                     {
                         Console.WriteLine("Invalid LDAP conversion for " + iu.Username);
+                        Console.WriteLine(e.ToString());
                     }
                 }
                 else
@@ -135,40 +143,40 @@ namespace eshc_diradmin.Pages
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("cn", ldapCn)));
                     }
-                    if (iu.FirstName != lu.FirstName)
+                    if (iu.FirstName != lu.FirstName && iu.FirstName.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("givenName", iu.FirstName)));
                     }
-                    if (iu.LastName != lu.Surname)
+                    if (iu.LastName != lu.Surname && iu.LastName.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("sn", iu.LastName)));
                     }
-                    if (iu.PreferredName != lu.DisplayName)
+                    if (iu.PreferredName != lu.DisplayName && iu.PreferredName.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("displayName", iu.PreferredName)));
                     }
-                    if (iu.Email != lu.Mail)
+                    if (iu.Email != lu.Mail && iu.Email.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("mail", iu.Email)));
                     }
-                    if (iu.Room != lu.Flat)
+                    if (iu.Room != lu.Flat && iu.Room.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("roomNumber", iu.Room)));
                     }
-                    if (iu.PermanentAddress != lu.Address)
+                    if (iu.PermanentAddress != lu.Address && iu.PermanentAddress.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
                             new LdapAttribute("postalAddress", iu.PermanentAddress)));
                     }
-                    if ("0" != lu.TelephoneNumber)
+                    if (iu.PhoneNumber != lu.TelephoneNumber && iu.PhoneNumber.Length > 0)
                     {
                         modifications.Add(new LdapModification(LdapModification.Replace,
-                            new LdapAttribute("telephoneNumber", "0")));
+                            new LdapAttribute("telephoneNumber", iu.PhoneNumber)));
                     }
                     if (ldapPwd != lu.Password)
                     {
@@ -184,9 +192,10 @@ namespace eshc_diradmin.Pages
                     {
                         Startup.ldap.Connection.Modify(lu.DN, modifications.ToArray());
                     }
-                    catch (LdapException)
+                    catch (LdapException e)
                     {
                         Console.WriteLine("Invalid LDAP conversion for " + lu.DN);
+                        Console.WriteLine(e.ToString());
                     }
                 }
             }

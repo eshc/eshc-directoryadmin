@@ -94,7 +94,7 @@ namespace eshc_diradmin
                             String building = r.GetValue(1).ToString();
                             String flat = r.GetValue(2).ToString();
                             String room = r.GetValue(3).ToString();
-                            u.Room = building + "/" + flat + "r" + room;
+                            u.Room = building + "/" + flat + room;
                         }
                 }
             }
